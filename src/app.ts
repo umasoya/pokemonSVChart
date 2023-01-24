@@ -1,3 +1,5 @@
+import { iconv } from 'iconv-lite';
+
 const getPokemon = () => {
   // ポケモン徹底攻略
   const url = 'https://yakkun.com/sv/pokemon_list.htm?mode=national';
