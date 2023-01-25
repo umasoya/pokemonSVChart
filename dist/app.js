@@ -1,4 +1,5 @@
 var global = this;
+// シートに書き込み
 function getPokemon() {
 }/******/ (() => { // webpackBootstrap
 /******/ 	var __webpack_modules__ = ({
@@ -16602,6 +16603,7 @@ const getPokemon = () => {
     });
     // ポケモンの詳細を取得していく
     const pokemons = getPokemonDetail(numbers);
+    // シートに書き込み
 };
 exports.getPokemon = getPokemon;
 /**
@@ -16617,22 +16619,24 @@ const getPokemonDetail = (numbers) => {
         // ページの取得
         const html = UrlFetchApp.fetch(url).getContentText('EUC-JP');
         const $ = cheerio.load(html);
+        const name = $('#base_anchor > table > tbody > tr:first-child > th').text();
         // タイプ
         const types = [];
         $('#base_anchor > table > tbody > tr > td.c1:contains("タイプ")').each((_, td) => {
             // imgのaltからタイプ名を取得
-            // 8行目を指定しているがポケモンごとに揺れがあるのでだめ
             const $td = $(td).next();
             $td.find('img').each((_, img) => {
                 types.push($(img).attr('alt'));
             });
         });
+        // 重さ
         const weight = () => {
             const $prev = $('#base_anchor > table > tbody > tr > td.c1:contains("重さ")');
             const $td = $prev.next();
             const str = $td.find('li:first-child').text();
             return Number(str.replace(/kg/g, ''));
         };
+        // 種族値
         const hp = () => {
             const $prev = $('#stats_anchor > table > tbody > tr > td.c1:contains("HP")').first();
             const $td = $prev.next();
@@ -16669,10 +16673,16 @@ const getPokemonDetail = (numbers) => {
             const str = $td.text();
             return Number(str.trim().replace(/\([^\)]*\)/g, ''));
         };
+        // 特性
+        const avility = (name) => {
+            const arr = [];
+            // WIP
+            return arr;
+        };
         // pokemonオブジェクトの生成
         const pokemon = {
             icon: $('#base_anchor > table > tbody > tr:nth-child(2) > td > img').attr('src'),
-            name: $('#base_anchor > table > tbody > tr:first-child > th').text(),
+            name: name,
             weight: weight(),
             types: types,
             baseStats: {
@@ -16682,11 +16692,15 @@ const getPokemonDetail = (numbers) => {
                 c: c(),
                 d: d(),
                 s: s(),
-            }
+            },
+            avility: avility(name),
         };
-        console.log(pokemon);
+        pokemons.push(pokemon);
     });
     return pokemons;
+};
+const writePokemon = (pokemons) => {
+    // A4 - M*
 };
 global.getPokemon = exports.getPokemon;
 

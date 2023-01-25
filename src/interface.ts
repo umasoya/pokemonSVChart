@@ -13,4 +13,5 @@ export interface Pokemon {
     weight: number;
     types: string[];
     baseStats: BaseStats;
+    avility: string[];
 }
