@@ -16580,7 +16580,6 @@ Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.getPokemon = void 0;
 const iconv = __webpack_require__(/*! iconv-lite */ "./node_modules/iconv-lite/lib/index.js");
 const cheerio = __webpack_require__(/*! cheerio */ "./node_modules/cheerio/lib/index.js");
-// require('buffer');
 // ポケモン徹底攻略
 const url = 'https://yakkun.com/sv/pokemon_list.htm?mode=national';
 // データを書き込むシートID
@@ -16628,19 +16627,61 @@ const getPokemonDetail = (numbers) => {
                 types.push($(img).attr('alt'));
             });
         });
+        const weight = () => {
+            const $prev = $('#base_anchor > table > tbody > tr > td.c1:contains("重さ")');
+            const $td = $prev.next();
+            const str = $td.find('li:first-child').text();
+            return Number(str.replace(/kg/g, ''));
+        };
+        const hp = () => {
+            const $prev = $('#stats_anchor > table > tbody > tr > td.c1:contains("HP")').first();
+            const $td = $prev.next();
+            const str = $td.text();
+            return Number(str.trim().replace(/\([^\)]*\)/g, ''));
+        };
+        const a = () => {
+            const $prev = $('#stats_anchor > table > tbody > tr > td.c1:contains("こうげき")').first();
+            const $td = $prev.next();
+            const str = $td.text();
+            return Number(str.trim().replace(/\([^\)]*\)/g, ''));
+        };
+        const b = () => {
+            const $prev = $('#stats_anchor > table > tbody > tr > td.c1:contains("ぼうぎょ")').first();
+            const $td = $prev.next();
+            const str = $td.text();
+            return Number(str.trim().replace(/\([^\)]*\)/g, ''));
+        };
+        const c = () => {
+            const $prev = $('#stats_anchor > table > tbody > tr > td.c1:contains("とくこう")').first();
+            const $td = $prev.next();
+            const str = $td.text();
+            return Number(str.trim().replace(/\([^\)]*\)/g, ''));
+        };
+        const d = () => {
+            const $prev = $('#stats_anchor > table > tbody > tr > td.c1:contains("とくぼう")').first();
+            const $td = $prev.next();
+            const str = $td.text();
+            return Number(str.trim().replace(/\([^\)]*\)/g, ''));
+        };
+        const s = () => {
+            const $prev = $('#stats_anchor > table > tbody > tr > td.c1:contains("すばやさ")').first();
+            const $td = $prev.next();
+            const str = $td.text();
+            return Number(str.trim().replace(/\([^\)]*\)/g, ''));
+        };
         // pokemonオブジェクトの生成
         const pokemon = {
             icon: $('#base_anchor > table > tbody > tr:nth-child(2) > td > img').attr('src'),
             name: $('#base_anchor > table > tbody > tr:first-child > th').text(),
-            weight: $('#base_anchor > table > tbody > tr:nth-child(7) > td:not(.c1) > ul > li:first-child').text().replace('/kg/g', ''),
+            weight: weight(),
             types: types,
             baseStats: {
-                h: $('#stats_anchor > table > tbody > tr:nth-child(2) > td:nth-child(2)').text().trim().replace('/\(.*\)/g', ''),
-                a: 0,
-                b: 0,
-                c: 0,
-                d: 0,
-                s: 0,
+                h: hp(),
+                a: a(),
+                b: b(),
+                c: c(),
+                d: d(),
+                s: s(),
             }
         };
         console.log(pokemon);
@@ -25345,7 +25386,6 @@ var exports = __webpack_exports__;
   \********************/
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-// import { BaseStats,Pokemon } from './interface';
 __webpack_require__(/*! ./main */ "./src/main.ts");
 
 })();
