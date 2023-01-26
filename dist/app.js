@@ -10788,6 +10788,21 @@ const getPokemonData = (numbers) => {
         const hp = json.stats.find((obj) => {
             return obj.stat.name === 'hp';
         }).base_stat;
+        const attack = json.stats.find((obj) => {
+            return obj.stat.name === 'attack';
+        }).base_stat;
+        const defence = json.stats.find((obj) => {
+            return obj.stat.name === 'defense';
+        }).base_stat;
+        const specialAttack = json.stats.find((obj) => {
+            return obj.stat.name === 'special-attack';
+        }).base_stat;
+        const specialDefence = json.stats.find((obj) => {
+            return obj.stat.name === 'special-defense';
+        }).base_stat;
+        const speed = json.stats.find((obj) => {
+            return obj.stat.name === 'speed';
+        }).base_stat;
         // pokemonオブジェクトの生成
         const pokemon = {
             icon: json.sprites.front_default,
@@ -10796,11 +10811,11 @@ const getPokemonData = (numbers) => {
             types: [],
             baseStats: {
                 h: hp,
-                a: 0,
-                b: 0,
-                c: 0,
-                d: 0,
-                s: 0,
+                a: attack,
+                b: defence,
+                c: specialAttack,
+                d: specialDefence,
+                s: speed,
             },
             avility: [],
             // avility: avility(name),
