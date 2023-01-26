@@ -2,6 +2,8 @@ var global = this;
 // シートに書き込み
 // writePokemonsData(pokemons);
 function getPokemon() {
+}
+function TransType() {
 }/******/ (() => { // webpackBootstrap
 /******/ 	var __webpack_modules__ = ({
 
@@ -10736,6 +10738,40 @@ exports.parse = parse;
 
 /***/ }),
 
+/***/ "./src/const.ts":
+/*!**********************!*\
+  !*** ./src/const.ts ***!
+  \**********************/
+/***/ ((__unused_webpack_module, exports) => {
+
+"use strict";
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.TransType = void 0;
+exports.TransType = {
+    normal: 'ノーマル',
+    fighting: 'かくとう',
+    flying: 'ひこう',
+    poison: 'どく',
+    ground: 'じめん',
+    rock: 'いわ',
+    bug: 'むし',
+    ghost: 'ゴースト',
+    steel: 'はがね',
+    fire: 'ほのお',
+    water: 'みず',
+    grass: 'くさ',
+    electric: 'でんき',
+    psychic: 'エスパー',
+    ice: 'こおり',
+    dragon: 'ドラゴン',
+    dark: 'あく',
+    fairy: 'フェアリー',
+};
+global.TransType = exports.TransType;
+
+/***/ }),
+
 /***/ "./src/main.ts":
 /*!*********************!*\
   !*** ./src/main.ts ***!
@@ -10746,6 +10782,7 @@ exports.parse = parse;
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.getPokemon = void 0;
+const const_1 = __webpack_require__(/*! ./const */ "./src/const.ts");
 const cheerio = __webpack_require__(/*! cheerio */ "./node_modules/cheerio/lib/index.js");
 // データを書き込むシートID
 const sid = '1qpHD4JvVJWh6_bUJdnBSZOj-EZid6eVlKX4ER_ET0xM';
@@ -10808,7 +10845,8 @@ const getPokemonData = (numbers) => {
         // types
         const types = [];
         json.types.forEach((obj) => {
-            types.push(obj.type.name);
+            types.push(const_1.TransType[obj.type.name]);
+            // types.push(obj.type.name);
         });
         // abilities
         const abilities = [];
@@ -10835,7 +10873,6 @@ const getPokemonData = (numbers) => {
                 s: speed,
             },
             abilities: abilities,
-            // avility: avility(name),
         };
         console.log(pokemon);
         pokemons.push(pokemon);

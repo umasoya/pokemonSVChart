@@ -1,3 +1,7 @@
+export interface Dict {
+    [key: string]: string;
+};
+
 export interface BaseStats {
     h: number;
     a: number;

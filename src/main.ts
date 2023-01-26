@@ -1,11 +1,11 @@
-import { json } from 'stream/consumers';
 import {
-   BaseStats,
-   Pokemon,
-   PokeJson,
-   PokeSpecies,
-   PokeAvilities
+  BaseStats,
+  Pokemon,
+  PokeJson,
+  PokeSpecies,
+  PokeAvilities
 } from './interface'
+import { TransType } from './const';
 
 const cheerio = require('cheerio');
 
@@ -79,7 +79,8 @@ const getPokemonData = (numbers :number[]): Pokemon[] => {
     // types
     const types :string[] = [];
     json.types.forEach((obj :any) => {
-      types.push(obj.type.name);
+      types.push(TransType[obj.type.name]);
+      // types.push(obj.type.name);
     });
 
     // abilities
@@ -108,7 +109,6 @@ const getPokemonData = (numbers :number[]): Pokemon[] => {
         s: speed,
       },
       abilities: abilities,
-      // avility: avility(name),
     };
 
     console.log(pokemon);
