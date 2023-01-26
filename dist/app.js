@@ -10782,9 +10782,11 @@ const getPokemonData = (numbers) => {
         const json = JSON.parse(UrlFetchApp.fetch(url).getContentText());
         const speciesUrl = `https://pokeapi.co/api/v2/pokemon-species/${number}`;
         const speciesJson = JSON.parse(UrlFetchApp.fetch(speciesUrl).getContentText());
+        // name
         const name = speciesJson.names.find((obj) => {
             return obj.language.name === 'ja';
         }).name;
+        // base stats
         const hp = json.stats.find((obj) => {
             return obj.stat.name === 'hp';
         }).base_stat;
@@ -10803,12 +10805,27 @@ const getPokemonData = (numbers) => {
         const speed = json.stats.find((obj) => {
             return obj.stat.name === 'speed';
         }).base_stat;
+        // types
+        const types = [];
+        json.types.forEach((obj) => {
+            types.push(obj.type.name);
+        });
+        // abilities
+        const abilities = [];
+        json.abilities.forEach((obj) => {
+            const res = UrlFetchApp.fetch(obj.ability.url).getContentText();
+            const json = JSON.parse(res);
+            const abilityName = json.names.find((obj) => {
+                return obj.language.name === 'ja';
+            }).name;
+            abilities.push(abilityName);
+        });
         // pokemonオブジェクトの生成
         const pokemon = {
             icon: json.sprites.front_default,
             name: name,
             weight: json.weight,
-            types: [],
+            types: types,
             baseStats: {
                 h: hp,
                 a: attack,
@@ -10817,102 +10834,10 @@ const getPokemonData = (numbers) => {
                 d: specialDefence,
                 s: speed,
             },
-            avility: [],
+            abilities: abilities,
             // avility: avility(name),
         };
         console.log(pokemon);
-        pokemons.push(pokemon);
-    });
-    return pokemons;
-};
-/**
- * @param {Array<Number>}
- * @return {Array}
- */
-const getPokemonDetail = (numbers) => {
-    // pokemonオブジェクトの配列
-    const pokemons = [];
-    numbers.forEach((number, index) => {
-        // ポケモンごとの図鑑ページ
-        const url = `https://yakkun.com/sv/zukan/n${number}`;
-        // ページの取得
-        const html = UrlFetchApp.fetch(url).getContentText('EUC-JP');
-        const $ = cheerio.load(html);
-        const name = $('#base_anchor > table > tbody > tr:first-child > th').text();
-        // タイプ
-        const types = [];
-        $('#base_anchor > table > tbody > tr > td.c1:contains("タイプ")').each((_, td) => {
-            // imgのaltからタイプ名を取得
-            const $td = $(td).next();
-            $td.find('img').each((_, img) => {
-                types.push($(img).attr('alt'));
-            });
-        });
-        // 重さ
-        const weight = () => {
-            const $prev = $('#base_anchor > table > tbody > tr > td.c1:contains("重さ")');
-            const $td = $prev.next();
-            const str = $td.find('li:first-child').text();
-            return Number(str.replace(/kg/g, ''));
-        };
-        // 種族値
-        const hp = () => {
-            const $prev = $('#stats_anchor > table > tbody > tr > td.c1:contains("HP")').first();
-            const $td = $prev.next();
-            const str = $td.text();
-            return Number(str.trim().replace(/\([^\)]*\)/g, ''));
-        };
-        const a = () => {
-            const $prev = $('#stats_anchor > table > tbody > tr > td.c1:contains("こうげき")').first();
-            const $td = $prev.next();
-            const str = $td.text();
-            return Number(str.trim().replace(/\([^\)]*\)/g, ''));
-        };
-        const b = () => {
-            const $prev = $('#stats_anchor > table > tbody > tr > td.c1:contains("ぼうぎょ")').first();
-            const $td = $prev.next();
-            const str = $td.text();
-            return Number(str.trim().replace(/\([^\)]*\)/g, ''));
-        };
-        const c = () => {
-            const $prev = $('#stats_anchor > table > tbody > tr > td.c1:contains("とくこう")').first();
-            const $td = $prev.next();
-            const str = $td.text();
-            return Number(str.trim().replace(/\([^\)]*\)/g, ''));
-        };
-        const d = () => {
-            const $prev = $('#stats_anchor > table > tbody > tr > td.c1:contains("とくぼう")').first();
-            const $td = $prev.next();
-            const str = $td.text();
-            return Number(str.trim().replace(/\([^\)]*\)/g, ''));
-        };
-        const s = () => {
-            const $prev = $('#stats_anchor > table > tbody > tr > td.c1:contains("すばやさ")').first();
-            const $td = $prev.next();
-            const str = $td.text();
-            return Number(str.trim().replace(/\([^\)]*\)/g, ''));
-        };
-        // 特性
-        const avility = (name) => {
-            const arr = [];
-            return arr;
-        };
-        // pokemonオブジェクトの生成
-        const pokemon = {
-            icon: $('#base_anchor > table > tbody > tr:nth-child(2) > td > img').attr('src'),
-            name: name,
-            weight: weight(),
-            types: types,
-            baseStats: {
-                h: hp(),
-                a: a(),
-                b: b(),
-                c: c(),
-                d: d(),
-                s: s(),
-            },
-            avility: avility(name),
-        };
         pokemons.push(pokemon);
     });
     return pokemons;

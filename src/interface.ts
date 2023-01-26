@@ -13,7 +13,7 @@ export interface Pokemon {
     weight: number;
     types: string[];
     baseStats: BaseStats;
-    avility: string[];
+    abilities: string[];
 }
 
 export interface PokeJson {
@@ -40,6 +40,12 @@ export interface PokeJson {
             url:  string;
         };
     }[];
+    types: {
+        type: {
+            name: string;
+            url:  string;
+        };
+    }[];
 }
 
 export interface PokeSpecies {
@@ -48,6 +54,16 @@ export interface PokeSpecies {
             name: string;
             url: string;
         }
+        name: string;
+    }[];
+}
+
+export interface PokeAvilities {
+    names: {
+        language: {
+            name: string;
+            url:  string;
+        };
         name: string;
     }[];
 }
