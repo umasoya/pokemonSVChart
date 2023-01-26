@@ -15,3 +15,39 @@ export interface Pokemon {
     baseStats: BaseStats;
     avility: string[];
 }
+
+export interface PokeJson {
+    id: number;
+    name: string;
+    weight: number;
+    abilities: {
+        ability: {
+            name: string;
+            url:  string;
+        };
+    }[];
+    species: {
+        name: string;
+        url:  string;
+    };
+    sprites: {
+        front_default: string;
+    };
+    stats: {
+        base_stat: number;
+        stat: {
+            name: string;
+            url:  string;
+        };
+    }[];
+}
+
+export interface PokeSpecies {
+    names: {
+        language: {
+            name: string;
+            url: string;
+        }
+        name: string;
+    }[];
+}

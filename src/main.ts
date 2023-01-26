@@ -1,10 +1,13 @@
-import { BaseStats, Pokemon } from './interface'
+import { json } from 'stream/consumers';
+import {
+   BaseStats,
+   Pokemon,
+   PokeJson,
+   PokeSpecies
+} from './interface'
 
-const iconv = require('iconv-lite');
 const cheerio = require('cheerio');
 
-// ポケモン徹底攻略
-const url: string = 'https://yakkun.com/sv/pokemon_list.htm?mode=national';
 // データを書き込むシートID
 const sid: string = '1qpHD4JvVJWh6_bUJdnBSZOj-EZid6eVlKX4ER_ET0xM';
 // スプレッドシートを取得
@@ -15,6 +18,8 @@ const sheetName: string = 'ポケモンリスト';
 const sheet: GoogleAppsScript.Spreadsheet.Sheet | null = spereadsheet.getSheetByName(sheetName);
 
 export const getPokemon = () => {
+  // ポケモン徹底攻略
+  const url: string = 'https://yakkun.com/sv/pokemon_list.htm?mode=national';
   // ページの取得
   const html: string = UrlFetchApp.fetch(url).getContentText('EUC-JP');
   // cheerioの初期化
@@ -29,10 +34,53 @@ export const getPokemon = () => {
   });
 
   // ポケモンの詳細を取得していく
-  const pokemons: Pokemon[] = getPokemonDetail(numbers);
+  // const pokemons: Pokemon[] = getPokemonDetail(numbers);
+  const pokemons: Pokemon[] = getPokemonData(numbers);
 
   // シートに書き込み
+  // writePokemonsData(pokemons);
 }
+
+const getPokemonData = (numbers :number[]): Pokemon[] => {
+  const pokemons :Pokemon[] = [];
+  numbers.forEach((number: number, index: number) => {
+    // pokeapi
+    const url  :string   = `https://pokeapi.co/api/v2/pokemon/${number}`;
+    const json :PokeJson = JSON.parse(UrlFetchApp.fetch(url).getContentText());
+    const speciesUrl :string = `https://pokeapi.co/api/v2/pokemon-species/${number}`;
+    const speciesJson :PokeSpecies = JSON.parse(UrlFetchApp.fetch(speciesUrl).getContentText());
+
+    const name :string = speciesJson.names.find((obj :any) => {
+      return obj.language.name === 'ja';
+    })!.name;
+
+    const hp :number = json.stats.find((obj :any) => {
+      return obj.stat.name === 'hp';
+    })!.base_stat;
+
+    // pokemonオブジェクトの生成
+    const pokemon: Pokemon = {
+      icon: json.sprites.front_default,
+      name: name,
+      weight: json.weight,
+      types: [],
+      baseStats: {
+        h: hp,
+        a: 0,
+        b: 0,
+        c: 0,
+        d: 0,
+        s: 0,
+      },
+      avility: [],
+      // avility: avility(name),
+    };
+
+    console.log(pokemon);
+    pokemons.push(pokemon);
+  });
+  return pokemons;
+};
 
 /**
  * @param {Array<Number>}
@@ -111,7 +159,6 @@ const getPokemonDetail = (numbers: number[]): Pokemon[] => {
     // 特性
     const avility = (name :string) :string[] => {
       const arr :string[] = [];
-      // WIP
       return arr;
     };
 
@@ -138,6 +185,6 @@ const getPokemonDetail = (numbers: number[]): Pokemon[] => {
   return pokemons;
 }
 
-const writePokemon = (pokemons: Pokemon[]) => {
+const writePokemonsData = (pokemons: Pokemon[]) => {
   // A4 - M*
 }
