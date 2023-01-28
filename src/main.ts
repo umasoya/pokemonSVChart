@@ -3,7 +3,9 @@ import {
   Pokemon,
   PokeJson,
   PokeSpecies,
-  PokeAvilities
+  PokeAvilities,
+  generation,
+  NumDict
 } from './interface'
 import { TransType } from './const';
 
@@ -16,30 +18,77 @@ const spereadsheet: GoogleAppsScript.Spreadsheet.Spreadsheet | null = Spreadshee
 
 // シートを取得
 const sheetName: string = 'ポケモンリスト';
-const sheet: GoogleAppsScript.Spreadsheet.Sheet | null = spereadsheet.getSheetByName(sheetName);
+const sheet: GoogleAppsScript.Spreadsheet.Sheet = spereadsheet.getSheetByName(sheetName)!;
 
 export const getPokemon = () => {
-  // ポケモン徹底攻略
-  const url: string = 'https://yakkun.com/sv/pokemon_list.htm?mode=national';
-  // ページの取得
-  const html: string = UrlFetchApp.fetch(url).getContentText('EUC-JP');
-  // cheerioの初期化
-  const $: cheerio.Root = cheerio.load(html);
+  // pokeapi
+  const url: string = 'http://pokeapi.co/api/v2/generation/9/';
+  const json :generation = JSON.parse(UrlFetchApp.fetch(url).getContentText());
 
-  const $rows: any = $('table.list td.c1');
-
-  // 全国図鑑No を取得していく
-  const numbers: number[] = [];
-  $rows.each((_: number, row: any) => {
-    numbers.push(Number($(row).text()));
-  });
+  const ids :number[] = getIds();
 
   // ポケモンの詳細を取得していく
-  // const pokemons: Pokemon[] = getPokemonDetail(numbers);
-  const pokemons: Pokemon[] = getPokemonData(numbers);
+  const pokemons: Pokemon[] = getPokemonData(ids);
 
   // シートに書き込み
-  // writePokemonsData(pokemons);
+  writePokemonsData(sheet, pokemons);
+}
+
+/**
+ *  ポケモン徹底攻略からSVで入手可能なポケモンのみを抽出
+ * @returns
+ */
+const getIds = (): number[] => {
+  const ids :number[] = [];
+  // ポケ徹
+  const url :string = 'https://yakkun.com/sv/pokemon_list.htm';
+  const res = UrlFetchApp.fetch(url).getContentText('EUC-JP');
+  const $ = cheerio.load(res);
+
+  $('table[summary="ポケモンリスト"] tr:not(:first)').each((_: number, row :any) => {
+    const $row :any    = $(row);
+    const url  :string = $row.find('td:nth-child(3) > a').attr('href');
+    let   id   :number = Number(url.split('/').pop()!.replace(/[^0-9]/g, ''));
+
+    // ドオー
+    if (id === 1009) {
+      id = 980;
+    }
+    // コノヨザル
+    if (id === 1010) {
+      id = 979;
+    }
+    // ノココッチ
+    if (id === 917) {
+      id = 982;
+    }
+
+    if (ids.includes(id)) {
+      // continue
+      return true;
+    }
+
+    ids.push(id);
+  });
+
+  // 以下でフォルム違いを個別に追加
+  ids.push(10008); // ヒートロトム
+  ids.push(10009); // ウォッシュロトム
+  ids.push(10010); // フロストロトム
+  ids.push(10011); // スピンロトム
+  ids.push(10012); // カットロトム
+  ids.push(10126); // ルガルガン(真夜中)
+  ids.push(10152); // ルガルガン(黄昏)
+  ids.push(10123); // オドリドリ(ぱちぱち)
+  ids.push(10124); // オドリドリ(ふらふら)
+  ids.push(10125); // オドリドリ(まいまい)
+  ids.push(10250); // パルデアケンタロス(格闘単)
+  ids.push(10251); // パルデアケンタロス(炎)
+  ids.push(10252); // パルデアケンタロス(水)
+  ids.push(10256); // イルカマン(マイティフォルム)
+  ids.push(10185); // コオリッポ(ナイスフェイス)
+
+  return ids;
 }
 
 const getPokemonData = (numbers :number[]): Pokemon[] => {
@@ -80,7 +129,6 @@ const getPokemonData = (numbers :number[]): Pokemon[] => {
     const types :string[] = [];
     json.types.forEach((obj :any) => {
       types.push(TransType[obj.type.name]);
-      // types.push(obj.type.name);
     });
 
     // abilities
@@ -117,6 +165,33 @@ const getPokemonData = (numbers :number[]): Pokemon[] => {
   return pokemons;
 };
 
-const writePokemonsData = (pokemons: Pokemon[]) => {
+const writePokemonsData = (sheet :GoogleAppsScript.Spreadsheet.Sheet, pokemons: Pokemon[]) => {
   // A4 - M*
+  // [
+  //   [ 'icon', 'name', ... ]
+  // ]
+  const length = pokemons.length;
+  const rows :any[][] = [];
+  pokemons.forEach((pokemon :Pokemon) => {
+    const row :any[] = [
+      pokemon.icon,
+      pokemon.name,
+      pokemon.types[0],
+      pokemon.types[1] || '',
+      pokemon.abilities[0],
+      pokemon.abilities[1] || '',
+      pokemon.abilities[2] || '',
+      pokemon.baseStats.h,
+      pokemon.baseStats.a,
+      pokemon.baseStats.b,
+      pokemon.baseStats.c,
+      pokemon.baseStats.d,
+      pokemon.baseStats.s,
+      pokemon.weight,
+    ];
+    rows.push(row);
+  });
+
+  sheet.getRange(4, 1, length, 15).setValues(rows);
+  // sheet.getRange(4, 1, length + 4, 14).setValues(rows);
 }

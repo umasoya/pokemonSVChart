@@ -1,6 +1,4 @@
 var global = this;
-// シートに書き込み
-// writePokemonsData(pokemons);
 function getPokemon() {
 }
 function TransType() {
@@ -10792,25 +10790,66 @@ const spereadsheet = SpreadsheetApp.openById(sid);
 const sheetName = 'ポケモンリスト';
 const sheet = spereadsheet.getSheetByName(sheetName);
 const getPokemon = () => {
-    // ポケモン徹底攻略
-    const url = 'https://yakkun.com/sv/pokemon_list.htm?mode=national';
-    // ページの取得
-    const html = UrlFetchApp.fetch(url).getContentText('EUC-JP');
-    // cheerioの初期化
-    const $ = cheerio.load(html);
-    const $rows = $('table.list td.c1');
-    // 全国図鑑No を取得していく
-    const numbers = [];
-    $rows.each((_, row) => {
-        numbers.push(Number($(row).text()));
-    });
+    // pokeapi
+    const url = 'http://pokeapi.co/api/v2/generation/9/';
+    const json = JSON.parse(UrlFetchApp.fetch(url).getContentText());
+    const ids = getIds();
     // ポケモンの詳細を取得していく
-    // const pokemons: Pokemon[] = getPokemonDetail(numbers);
-    const pokemons = getPokemonData(numbers);
+    const pokemons = getPokemonData(ids);
     // シートに書き込み
-    // writePokemonsData(pokemons);
+    writePokemonsData(sheet, pokemons);
 };
 exports.getPokemon = getPokemon;
+/**
+ *  ポケモン徹底攻略からSVで入手可能なポケモンのみを抽出
+ * @returns
+ */
+const getIds = () => {
+    const ids = [];
+    // ポケ徹
+    const url = 'https://yakkun.com/sv/pokemon_list.htm';
+    const res = UrlFetchApp.fetch(url).getContentText('EUC-JP');
+    const $ = cheerio.load(res);
+    $('table[summary="ポケモンリスト"] tr:not(:first)').each((_, row) => {
+        const $row = $(row);
+        const url = $row.find('td:nth-child(3) > a').attr('href');
+        let id = Number(url.split('/').pop().replace(/[^0-9]/g, ''));
+        // ドオー
+        if (id === 1009) {
+            id = 980;
+        }
+        // コノヨザル
+        if (id === 1010) {
+            id = 979;
+        }
+        // ノココッチ
+        if (id === 917) {
+            id = 982;
+        }
+        if (ids.includes(id)) {
+            // continue
+            return true;
+        }
+        ids.push(id);
+    });
+    // 以下でフォルム違いを個別に追加
+    ids.push(10008); // ヒートロトム
+    ids.push(10009); // ウォッシュロトム
+    ids.push(10010); // フロストロトム
+    ids.push(10011); // スピンロトム
+    ids.push(10012); // カットロトム
+    ids.push(10126); // ルガルガン(真夜中)
+    ids.push(10152); // ルガルガン(黄昏)
+    ids.push(10123); // オドリドリ(ぱちぱち)
+    ids.push(10124); // オドリドリ(ふらふら)
+    ids.push(10125); // オドリドリ(まいまい)
+    ids.push(10250); // パルデアケンタロス(格闘単)
+    ids.push(10251); // パルデアケンタロス(炎)
+    ids.push(10252); // パルデアケンタロス(水)
+    ids.push(10256); // イルカマン(マイティフォルム)
+    ids.push(10185); // コオリッポ(ナイスフェイス)
+    return ids;
+};
 const getPokemonData = (numbers) => {
     const pokemons = [];
     numbers.forEach((number, index) => {
@@ -10846,7 +10885,6 @@ const getPokemonData = (numbers) => {
         const types = [];
         json.types.forEach((obj) => {
             types.push(const_1.TransType[obj.type.name]);
-            // types.push(obj.type.name);
         });
         // abilities
         const abilities = [];
@@ -10879,8 +10917,34 @@ const getPokemonData = (numbers) => {
     });
     return pokemons;
 };
-const writePokemonsData = (pokemons) => {
+const writePokemonsData = (sheet, pokemons) => {
     // A4 - M*
+    // [
+    //   [ 'icon', 'name', ... ]
+    // ]
+    const length = pokemons.length;
+    const rows = [];
+    pokemons.forEach((pokemon) => {
+        const row = [
+            pokemon.icon,
+            pokemon.name,
+            pokemon.types[0],
+            pokemon.types[1] || '',
+            pokemon.abilities[0],
+            pokemon.abilities[1] || '',
+            pokemon.abilities[2] || '',
+            pokemon.baseStats.h,
+            pokemon.baseStats.a,
+            pokemon.baseStats.b,
+            pokemon.baseStats.c,
+            pokemon.baseStats.d,
+            pokemon.baseStats.s,
+            pokemon.weight,
+        ];
+        rows.push(row);
+    });
+    sheet.getRange(4, 1, length, 15).setValues(rows);
+    // sheet.getRange(4, 1, length + 4, 14).setValues(rows);
 };
 global.getPokemon = exports.getPokemon;
 

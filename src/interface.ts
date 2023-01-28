@@ -1,6 +1,9 @@
 export interface Dict {
     [key: string]: string;
 };
+export interface NumDict {
+    [key: number]: number;
+}
 
 export interface BaseStats {
     h: number;
@@ -9,6 +12,15 @@ export interface BaseStats {
     c: number;
     d: number;
     s: number;
+}
+
+export interface generation {
+    id: number;
+    name: string;
+    pokemon_species: {
+        name: string;
+        url:  string;
+    }[];
 }
 
 export interface Pokemon {
