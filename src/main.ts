@@ -62,6 +62,10 @@ const getIds = (): number[] => {
     if (id === 917) {
       id = 982;
     }
+    // リキキリン
+    if (id === 928) {
+      id = 981;
+    }
 
     if (ids.includes(id)) {
       // continue
@@ -93,75 +97,79 @@ const getIds = (): number[] => {
 
 const getPokemonData = (numbers :number[]): Pokemon[] => {
   const pokemons :Pokemon[] = [];
-  numbers.forEach((number: number, index: number) => {
-    // pokeapi
-    const url  :string   = `https://pokeapi.co/api/v2/pokemon/${number}`;
-    const json :PokeJson = JSON.parse(UrlFetchApp.fetch(url).getContentText());
-    const speciesUrl :string = `https://pokeapi.co/api/v2/pokemon-species/${number}`;
-    const speciesJson :PokeSpecies = JSON.parse(UrlFetchApp.fetch(speciesUrl).getContentText());
+  try {
+    numbers.forEach((number: number, index: number) => {
+      // pokeapi
+      const url  :string   = `https://pokeapi.co/api/v2/pokemon/${number}`;
+      const json :PokeJson = JSON.parse(UrlFetchApp.fetch(url).getContentText());
+      const speciesUrl :string = `https://pokeapi.co/api/v2/pokemon-species/${number}`;
+      const speciesJson :PokeSpecies = JSON.parse(UrlFetchApp.fetch(speciesUrl).getContentText());
 
-    // name
-    const name :string = speciesJson.names.find((obj :any) => {
-      return obj.language.name === 'ja';
-    })!.name;
-
-    // base stats
-    const hp :number = json.stats.find((obj :any) => {
-      return obj.stat.name === 'hp';
-    })!.base_stat;
-    const attack :number = json.stats.find((obj :any) => {
-      return obj.stat.name === 'attack';
-    })!.base_stat;
-    const defence :number = json.stats.find((obj :any) => {
-      return obj.stat.name === 'defense';
-    })!.base_stat;
-    const specialAttack :number = json.stats.find((obj :any) => {
-      return obj.stat.name === 'special-attack';
-    })!.base_stat;
-    const specialDefence :number = json.stats.find((obj :any) => {
-      return obj.stat.name === 'special-defense';
-    })!.base_stat;
-    const speed :number = json.stats.find((obj :any) => {
-      return obj.stat.name === 'speed';
-    })!.base_stat;
-
-    // types
-    const types :string[] = [];
-    json.types.forEach((obj :any) => {
-      types.push(TransType[obj.type.name]);
-    });
-
-    // abilities
-    const abilities :string[] = [];
-    json.abilities.forEach((obj :any) => {
-      const res = UrlFetchApp.fetch(obj.ability.url).getContentText();
-      const json :PokeAvilities = JSON.parse(res);
-      const abilityName :string = json.names.find((obj :any) => {
+      // name
+      const name :string = speciesJson.names.find((obj :any) => {
         return obj.language.name === 'ja';
       })!.name;
-      abilities.push(abilityName);
+
+      // base stats
+      const hp :number = json.stats.find((obj :any) => {
+        return obj.stat.name === 'hp';
+      })!.base_stat;
+      const attack :number = json.stats.find((obj :any) => {
+        return obj.stat.name === 'attack';
+      })!.base_stat;
+      const defence :number = json.stats.find((obj :any) => {
+        return obj.stat.name === 'defense';
+      })!.base_stat;
+      const specialAttack :number = json.stats.find((obj :any) => {
+        return obj.stat.name === 'special-attack';
+      })!.base_stat;
+      const specialDefence :number = json.stats.find((obj :any) => {
+        return obj.stat.name === 'special-defense';
+      })!.base_stat;
+      const speed :number = json.stats.find((obj :any) => {
+        return obj.stat.name === 'speed';
+      })!.base_stat;
+
+      // types
+      const types :string[] = [];
+      json.types.forEach((obj :any) => {
+        types.push(TransType[obj.type.name]);
+      });
+
+      // abilities
+      const abilities :string[] = [];
+      json.abilities.forEach((obj :any) => {
+        const res = UrlFetchApp.fetch(obj.ability.url).getContentText();
+        const json :PokeAvilities = JSON.parse(res);
+        const abilityName :string = json.names.find((obj :any) => {
+          return obj.language.name === 'ja';
+        })!.name;
+        abilities.push(abilityName);
+      });
+
+      // pokemonオブジェクトの生成
+      const pokemon: Pokemon = {
+        icon: json.sprites.front_default,
+        name: name,
+        weight: json.weight,
+        types: types,
+        baseStats: {
+          h: hp,
+          a: attack,
+          b: defence,
+          c: specialAttack,
+          d: specialDefence,
+          s: speed,
+        },
+        abilities: abilities,
+      };
+
+      console.log(pokemon.name);
+      pokemons.push(pokemon);
     });
-
-    // pokemonオブジェクトの生成
-    const pokemon: Pokemon = {
-      icon: json.sprites.front_default,
-      name: name,
-      weight: json.weight,
-      types: types,
-      baseStats: {
-        h: hp,
-        a: attack,
-        b: defence,
-        c: specialAttack,
-        d: specialDefence,
-        s: speed,
-      },
-      abilities: abilities,
-    };
-
-    console.log(pokemon);
-    pokemons.push(pokemon);
-  });
+  } catch (err) {
+    console.error(err);
+  }
   return pokemons;
 };
 
@@ -174,7 +182,7 @@ const writePokemonsData = (sheet :GoogleAppsScript.Spreadsheet.Sheet, pokemons: 
   const rows :any[][] = [];
   pokemons.forEach((pokemon :Pokemon) => {
     const row :any[] = [
-      pokemon.icon,
+      `=IMAGE("${pokemon.icon}")` || '',
       pokemon.name,
       pokemon.types[0],
       pokemon.types[1] || '',
@@ -187,11 +195,11 @@ const writePokemonsData = (sheet :GoogleAppsScript.Spreadsheet.Sheet, pokemons: 
       pokemon.baseStats.c,
       pokemon.baseStats.d,
       pokemon.baseStats.s,
-      pokemon.weight,
+      pokemon.weight / 10, // なぜかpokeapiの体重表記は0.1kg = 1
     ];
     rows.push(row);
   });
 
-  sheet.getRange(4, 1, length, 15).setValues(rows);
+  sheet.getRange(4, 1, length, 14).setValues(rows);
   // sheet.getRange(4, 1, length + 4, 14).setValues(rows);
 }

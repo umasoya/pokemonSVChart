@@ -10826,6 +10826,10 @@ const getIds = () => {
         if (id === 917) {
             id = 982;
         }
+        // リキキリン
+        if (id === 928) {
+            id = 981;
+        }
         if (ids.includes(id)) {
             // continue
             return true;
@@ -10852,69 +10856,74 @@ const getIds = () => {
 };
 const getPokemonData = (numbers) => {
     const pokemons = [];
-    numbers.forEach((number, index) => {
-        // pokeapi
-        const url = `https://pokeapi.co/api/v2/pokemon/${number}`;
-        const json = JSON.parse(UrlFetchApp.fetch(url).getContentText());
-        const speciesUrl = `https://pokeapi.co/api/v2/pokemon-species/${number}`;
-        const speciesJson = JSON.parse(UrlFetchApp.fetch(speciesUrl).getContentText());
-        // name
-        const name = speciesJson.names.find((obj) => {
-            return obj.language.name === 'ja';
-        }).name;
-        // base stats
-        const hp = json.stats.find((obj) => {
-            return obj.stat.name === 'hp';
-        }).base_stat;
-        const attack = json.stats.find((obj) => {
-            return obj.stat.name === 'attack';
-        }).base_stat;
-        const defence = json.stats.find((obj) => {
-            return obj.stat.name === 'defense';
-        }).base_stat;
-        const specialAttack = json.stats.find((obj) => {
-            return obj.stat.name === 'special-attack';
-        }).base_stat;
-        const specialDefence = json.stats.find((obj) => {
-            return obj.stat.name === 'special-defense';
-        }).base_stat;
-        const speed = json.stats.find((obj) => {
-            return obj.stat.name === 'speed';
-        }).base_stat;
-        // types
-        const types = [];
-        json.types.forEach((obj) => {
-            types.push(const_1.TransType[obj.type.name]);
-        });
-        // abilities
-        const abilities = [];
-        json.abilities.forEach((obj) => {
-            const res = UrlFetchApp.fetch(obj.ability.url).getContentText();
-            const json = JSON.parse(res);
-            const abilityName = json.names.find((obj) => {
+    try {
+        numbers.forEach((number, index) => {
+            // pokeapi
+            const url = `https://pokeapi.co/api/v2/pokemon/${number}`;
+            const json = JSON.parse(UrlFetchApp.fetch(url).getContentText());
+            const speciesUrl = `https://pokeapi.co/api/v2/pokemon-species/${number}`;
+            const speciesJson = JSON.parse(UrlFetchApp.fetch(speciesUrl).getContentText());
+            // name
+            const name = speciesJson.names.find((obj) => {
                 return obj.language.name === 'ja';
             }).name;
-            abilities.push(abilityName);
+            // base stats
+            const hp = json.stats.find((obj) => {
+                return obj.stat.name === 'hp';
+            }).base_stat;
+            const attack = json.stats.find((obj) => {
+                return obj.stat.name === 'attack';
+            }).base_stat;
+            const defence = json.stats.find((obj) => {
+                return obj.stat.name === 'defense';
+            }).base_stat;
+            const specialAttack = json.stats.find((obj) => {
+                return obj.stat.name === 'special-attack';
+            }).base_stat;
+            const specialDefence = json.stats.find((obj) => {
+                return obj.stat.name === 'special-defense';
+            }).base_stat;
+            const speed = json.stats.find((obj) => {
+                return obj.stat.name === 'speed';
+            }).base_stat;
+            // types
+            const types = [];
+            json.types.forEach((obj) => {
+                types.push(const_1.TransType[obj.type.name]);
+            });
+            // abilities
+            const abilities = [];
+            json.abilities.forEach((obj) => {
+                const res = UrlFetchApp.fetch(obj.ability.url).getContentText();
+                const json = JSON.parse(res);
+                const abilityName = json.names.find((obj) => {
+                    return obj.language.name === 'ja';
+                }).name;
+                abilities.push(abilityName);
+            });
+            // pokemonオブジェクトの生成
+            const pokemon = {
+                icon: json.sprites.front_default,
+                name: name,
+                weight: json.weight,
+                types: types,
+                baseStats: {
+                    h: hp,
+                    a: attack,
+                    b: defence,
+                    c: specialAttack,
+                    d: specialDefence,
+                    s: speed,
+                },
+                abilities: abilities,
+            };
+            console.log(pokemon.name);
+            pokemons.push(pokemon);
         });
-        // pokemonオブジェクトの生成
-        const pokemon = {
-            icon: json.sprites.front_default,
-            name: name,
-            weight: json.weight,
-            types: types,
-            baseStats: {
-                h: hp,
-                a: attack,
-                b: defence,
-                c: specialAttack,
-                d: specialDefence,
-                s: speed,
-            },
-            abilities: abilities,
-        };
-        console.log(pokemon);
-        pokemons.push(pokemon);
-    });
+    }
+    catch (err) {
+        console.error(err);
+    }
     return pokemons;
 };
 const writePokemonsData = (sheet, pokemons) => {
@@ -10926,7 +10935,7 @@ const writePokemonsData = (sheet, pokemons) => {
     const rows = [];
     pokemons.forEach((pokemon) => {
         const row = [
-            pokemon.icon,
+            `=IMAGE("${pokemon.icon}")` || '',
             pokemon.name,
             pokemon.types[0],
             pokemon.types[1] || '',
@@ -10939,11 +10948,11 @@ const writePokemonsData = (sheet, pokemons) => {
             pokemon.baseStats.c,
             pokemon.baseStats.d,
             pokemon.baseStats.s,
-            pokemon.weight,
+            pokemon.weight / 10, // なぜかpokeapiの体重表記は0.1kg = 1
         ];
         rows.push(row);
     });
-    sheet.getRange(4, 1, length, 15).setValues(rows);
+    sheet.getRange(4, 1, length, 14).setValues(rows);
     // sheet.getRange(4, 1, length + 4, 14).setValues(rows);
 };
 global.getPokemon = exports.getPokemon;
